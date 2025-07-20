@@ -7,17 +7,13 @@ import (
 
 	"database/sql"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
-	"github.com/serhappy/rssagg/internal/database"
+	"github.com/serhappy/rssagg/internal/app"
+	"github.com/serhappy/rssagg/internal/db"
+	"github.com/serhappy/rssagg/internal/server"
 
 	_ "github.com/lib/pq"
 )
-
-type apiConfig struct {
-	DB *database.Queries
-}
 
 func main() {
 	godotenv.Load()
@@ -32,48 +28,21 @@ func main() {
 		log.Fatal("DB_URL is not found in the env")
 	}
 
-	con, err := sql.Open("postgres", dbURL)
+	conn, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatal("Can't connect to the database", err)
 	}
+	defer conn.Close()
 
-	apiConfig := apiConfig{
-		DB: database.New(con),
+	app := &app.App{
+		DB: db.New(conn),
 	}
 
-	router := chi.NewRouter()
-
-	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"https://*", "http://*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
-
-	v1Router := chi.NewRouter()
-
-	v1Router.Get("/healthz", handleHealthz)
-	v1Router.Get("/error", handleError)
-	v1Router.Post("/users", apiConfig.handleCreateUser)
-	v1Router.Get("/users", apiConfig.authMiddleware(apiConfig.handleGetUser))
-	v1Router.Post("/feeds", apiConfig.authMiddleware(apiConfig.handleCreateFeed))
-	v1Router.Get("/feeds", apiConfig.handleGetFeeds)
-	v1Router.Post("/feed_follows", apiConfig.authMiddleware(apiConfig.handleCreateFeedFollow))
-	v1Router.Get("/feed_follows", apiConfig.authMiddleware(apiConfig.handleGetUserFeedFollows))
-	v1Router.Delete("/feed_follows/{feedFollowID}", apiConfig.authMiddleware(apiConfig.handleDeleteFeedFollow))
-
-	router.Mount("/v1", v1Router)
-
 	srv := &http.Server{
-		Handler: router,
+		Handler: server.NewServer(app),
 		Addr:    ":" + port,
 	}
 
-	log.Printf("Server starting on port %v", port)
-	err = srv.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Printf("Listening on port %s", port)
+	log.Fatal(srv.ListenAndServe())
 }

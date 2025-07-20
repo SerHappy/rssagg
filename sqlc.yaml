@@ -5,6 +5,6 @@ sql:
     engine: "postgresql"
     gen:
       go:
-        out: "internal/database"
+        out: "internal/db"
         emit_json_tags: true
         json_tags_case_style: snake
