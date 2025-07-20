@@ -1,5 +1,4 @@
 -- name: CreateFeed :one
--- name: CreateFeed :one
 INSERT INTO feeds (
     id,
     created_at,
@@ -15,3 +14,6 @@ INSERT INTO feeds (
     $5,
     $6
 ) RETURNING *;
+
+-- name: GetFeeds :many
+select * from feeds;
