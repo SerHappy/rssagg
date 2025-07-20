@@ -7,17 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/serhappy/rssagg/internal/auth"
 	"github.com/serhappy/rssagg/internal/database"
 )
-
-func handleHealthz(w http.ResponseWriter, r *http.Request) {
-	respondWithJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-}
-
-func handleError(w http.ResponseWriter, r *http.Request) {
-	respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
-}
 
 func (apiConfig *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
@@ -44,16 +35,6 @@ func (apiConfig *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Requ
 
 }
 
-func (apiConfig *apiConfig) handleGetUser(w http.ResponseWriter, r *http.Request) {
-	apiKey, err := auth.GetAPIKey(r.Header)
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, fmt.Sprintf("Unauthorized: %v", err))
-		return
-	}
-	user, err := apiConfig.DB.GetUserByAPIKey(r.Context(), apiKey)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Couldn't get user: %v", err))
-		return
-	}
+func (apiConfig *apiConfig) handleGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
 }
