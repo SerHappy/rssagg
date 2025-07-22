@@ -4,12 +4,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"database/sql"
 
 	"github.com/joho/godotenv"
 	"github.com/serhappy/rssagg/internal/app"
 	"github.com/serhappy/rssagg/internal/db"
+	"github.com/serhappy/rssagg/internal/scraper"
 	"github.com/serhappy/rssagg/internal/server"
 
 	_ "github.com/lib/pq"
@@ -37,6 +39,8 @@ func main() {
 	app := &app.App{
 		DB: db.New(conn),
 	}
+
+	go scraper.StartScraping(app.DB, 10, time.Minute)
 
 	srv := &http.Server{
 		Handler: server.NewServer(app),
