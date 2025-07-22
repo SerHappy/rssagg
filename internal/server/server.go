@@ -41,9 +41,16 @@ func NewServer(app *app.App) http.Handler {
 
 	feedFollowHandler := handler.NewFeedFollowHandler(app)
 	v1Router.Route("/feed_follows", func(r chi.Router) {
-		r.With(middleware.Auth(app)).Post("/", feedFollowHandler.CreateFeedFollow)
-		r.With(middleware.Auth(app)).Get("/", feedFollowHandler.GetUserFeedFollows)
-		r.With(middleware.Auth(app)).Delete("/{feedFollowID}", feedFollowHandler.DeleteFeedFollow)
+		r.Use(middleware.Auth(app))
+		r.Post("/", feedFollowHandler.CreateFeedFollow)
+		r.Get("/", feedFollowHandler.GetUserFeedFollows)
+		r.Delete("/{feedFollowID}", feedFollowHandler.DeleteFeedFollow)
+	})
+
+	postHandler := handler.NewPostHandler(app)
+	v1Router.Route("/posts", func(r chi.Router) {
+		r.Use(middleware.Auth(app))
+		r.Get("/", postHandler.GetPosts)
 	})
 
 	router.Mount("/v1", v1Router)
