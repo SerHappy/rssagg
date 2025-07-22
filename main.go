@@ -40,7 +40,7 @@ func main() {
 		DB: db.New(conn),
 	}
 
-	go scraper.StartScraping(app.DB, 10, time.Minute)
+	go scraper.StartScraping(app, 10, time.Minute)
 
 	srv := &http.Server{
 		Handler: server.NewServer(app),
