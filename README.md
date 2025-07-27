@@ -70,6 +70,6 @@ This project is an RSS aggregator web application written in Go. It allows users
 - `GET /feeds`: List all feeds
 - `POST /feed_follows`: Follow a feed
 - `GET /posts`: Get posts for followed feeds
-- `GET /health`: Health check
+- `GET /healthz`: Health check
 
 Authentication is via API key in the `Authorization` header.
